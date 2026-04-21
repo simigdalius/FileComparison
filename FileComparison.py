@@ -6,16 +6,17 @@ import pdfplumber
 import re
 import os
 import threading
+import time
 
 # Ρυθμίσεις Εμφάνισης
-ctk.set_appearance_mode("System")  # Ακολουθεί το θέμα των Windows (Dark/Light)
+ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
 
 class ModernDataMatcherApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Αντιστοίχιση Δεδομένων Excel & PDF")
-        self.root.geometry("650x700")
+        self.root.geometry("650x750")
 
         self.excel_path = ctk.StringVar()
         self.pdf_path = ctk.StringVar()
@@ -31,7 +32,6 @@ class ModernDataMatcherApp:
         self.setup_ui()
 
     def setup_ui(self):
-        # Κεντρικό Frame για ωραία περιθώρια
         main_frame = ctk.CTkFrame(self.root, fg_color="transparent")
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
@@ -54,25 +54,29 @@ class ModernDataMatcherApp:
 
         # --- ΠΛΑΙΣΙΟ 2: Μαζικός Έλεγχος & Επιλογές ---
         options_frame = ctk.CTkFrame(main_frame)
-        options_frame.pack(fill="x", pady=(0, 20))
+        options_frame.pack(fill="x", pady=(0, 10))
         ctk.CTkLabel(options_frame, text="2. Μαζικός Έλεγχος", font=("Arial", 16, "bold")).pack(anchor="w", padx=15, pady=(10, 5))
 
         ctk.CTkCheckBox(options_frame, text="Δημιουργία Excel ΜΟΝΟ με τα κοινά", variable=self.export_matches_var).pack(anchor="w", padx=15, pady=5)
-        ctk.CTkCheckBox(options_frame, text="Δημιουργία νέου Excel με πράσινο Highlight στα κοινά", variable=self.highlight_excel_var).pack(anchor="w", padx=15, pady=(5, 15))
+        # ΑΛΛΑΓΗ 1: Νέο κείμενο στο Checkbox
+        ctk.CTkCheckBox(options_frame, text="Πράσινο Highlight στα κοινά (Στο αρχικό Excel)", variable=self.highlight_excel_var).pack(anchor="w", padx=15, pady=(5, 15))
 
         self.run_btn = ctk.CTkButton(options_frame, text="Εκτέλεση Ελέγχου", command=self.start_matching_thread, font=("Arial", 14, "bold"), fg_color="#2FA572", hover_color="#106A43")
         self.run_btn.pack(pady=(0, 10))
 
-        # Progress Bar & Status (Αρχικά κρυμμένα)
-        self.progress = ctk.CTkProgressBar(options_frame, mode="indeterminate", width=400)
+        self.loading_frame = ctk.CTkFrame(options_frame, height=60, fg_color="transparent")
+        self.loading_frame.pack(fill="x", pady=5)
+        self.loading_frame.pack_propagate(False) 
+
+        self.progress = ctk.CTkProgressBar(self.loading_frame, mode="indeterminate", width=400)
         self.progress.set(0)
-        self.status_label = ctk.CTkLabel(options_frame, text="", text_color="gray")
+        self.status_label = ctk.CTkLabel(self.loading_frame, text="", text_color="gray")
         
         self.open_file_btn = ctk.CTkButton(options_frame, text="Άνοιγμα Αρχείου Κοινών", command=self.open_matches_file, fg_color="#1f538d")
 
         # --- ΠΛΑΙΣΙΟ 3: Μεμονωμένη Αναζήτηση ---
         search_frame = ctk.CTkFrame(main_frame)
-        search_frame.pack(fill="x")
+        search_frame.pack(fill="x", pady=(30, 0))
         ctk.CTkLabel(search_frame, text="3. Μεμονωμένη Αναζήτηση Εργαζόμενου", font=("Arial", 16, "bold")).pack(anchor="w", padx=15, pady=(10, 5))
 
         s_row = ctk.CTkFrame(search_frame, fg_color="transparent")
@@ -102,7 +106,6 @@ class ModernDataMatcherApp:
         if excel_file == self.last_loaded_excel and pdf_file == self.last_loaded_pdf:
             return
 
-        # Ενημέρωση χρήστη
         self.root.after(0, lambda: self.status_label.configure(text="Διαβάζεται το Excel..."))
         
         self.cached_excel_codes = []
@@ -112,15 +115,17 @@ class ModernDataMatcherApp:
             if row[0]:
                 self.cached_excel_codes.append(str(row[0]).strip())
         
-        # Ενημέρωση χρήστη
-        self.root.after(0, lambda: self.status_label.configure(text="Εξαγωγή κειμένου από το PDF... Αυτό μπορεί να πάρει λίγο χρόνο."))
-        
         pdf_text = ""
         with pdfplumber.open(pdf_file) as pdf:
-            for page in pdf.pages:
+            total_pages = len(pdf.pages)
+            for i, page in enumerate(pdf.pages):
+                self.root.after(0, lambda p=i+1, t=total_pages: self.status_label.configure(text=f"Διάβασμα PDF: Σελίδα {p} από {t}..."))
                 text = page.extract_text()
-                if text: pdf_text += text + "\n"
+                if text: 
+                    pdf_text += text + "\n"
+                time.sleep(0.05)
 
+        self.root.after(0, lambda: self.status_label.configure(text="Αναζήτηση κωδικών στο κείμενο..."))
         regex_pattern = r'\b[A-Z0-9]{5,10}\b'
         self.cached_pdf_codes = re.findall(regex_pattern, pdf_text)
 
@@ -130,9 +135,9 @@ class ModernDataMatcherApp:
     def start_loading_ui(self):
         self.run_btn.configure(state="disabled")
         self.open_file_btn.pack_forget()
-        self.progress.pack(pady=(10, 0))
+        self.progress.pack(pady=(5, 0))
         self.progress.start()
-        self.status_label.pack(pady=(5, 10))
+        self.status_label.pack(pady=(2, 0))
 
     def stop_loading_ui(self):
         self.progress.stop()
@@ -142,14 +147,13 @@ class ModernDataMatcherApp:
 
     def start_matching_thread(self):
         self.start_loading_ui()
-        # Τρέχουμε τη βαριά δουλειά σε άλλο thread για να μην κολλήσει το UI
         threading.Thread(target=self.run_matching_logic, daemon=True).start()
 
     def run_matching_logic(self):
         try:
             self.load_data_to_cache()
             
-            self.root.after(0, lambda: self.status_label.configure(text="Επεξεργασία δεδομένων και δημιουργία αρχείων..."))
+            self.root.after(0, lambda: self.status_label.configure(text="Επεξεργασία δεδομένων..."))
             matches = [code for code in self.cached_excel_codes if code in self.cached_pdf_codes]
 
             if self.export_matches_var.get():
@@ -174,12 +178,17 @@ class ModernDataMatcherApp:
                     if cell.value and str(cell.value).strip() in self.cached_pdf_codes:
                         cell.fill = green_fill
                 
-                wb_original.save("Highlighted_Excel.xlsx")
+                # ΑΛΛΑΓΗ 2: Αποθήκευση πάνω στο αρχικό αρχείο
+                wb_original.save(excel_file)
 
             self.root.after(0, lambda: messagebox.showinfo("Ολοκληρώθηκε", "Η αντιστοίχιση ολοκληρώθηκε επιτυχώς!"))
 
         except Exception as e:
-            self.root.after(0, lambda e=e: messagebox.showerror("Σφάλμα", str(e)))
+            # Σημαντικό: Αν το Excel είναι ανοιχτό, δεν μπορεί να σώσει πάνω του και θα βγάλει σφάλμα (PermissionError).
+            error_msg = str(e)
+            if "Permission denied" in error_msg:
+                error_msg = "Δεν ήταν δυνατή η αποθήκευση. Βεβαιωθείτε ότι το αρχείο Excel είναι ΚΛΕΙΣΤΟ και ξαναδοκιμάστε."
+            self.root.after(0, lambda e=error_msg: messagebox.showerror("Σφάλμα", e))
         finally:
             self.root.after(0, self.stop_loading_ui)
 
