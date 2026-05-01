@@ -1,8 +1,10 @@
 # 📊 Excel & PDF Data Matcher 
 
-![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
-![GUI](https://img.shields.io/badge/GUI-CustomTkinter-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-blue)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![CustomTkinter](https://img.shields.io/badge/CustomTkinter-2FA572?style=for-the-badge&logo=python&logoColor=white)
+![Excel](https://img.shields.io/badge/Excel-217346?style=for-the-badge&logo=microsoftexcel&logoColor=white)
+![PDF](https://img.shields.io/badge/PDF-EC1C24?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 
 Μια σύγχρονη, αυτοματοποιημένη desktop εφαρμογή γραμμένη σε Python για την ταχύτατη αντιστοίχιση, επαλήθευση και οπτικοποίηση δεδομένων (μέσω Regex) μεταξύ αρχείων **Excel (.xlsx)** και **PDF**.
 
