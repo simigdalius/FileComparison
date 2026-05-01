@@ -1,4 +1,4 @@
-# 📊 Excel & PDF Data Matcher Pro
+# 📊 Excel & PDF Data Matcher 
 
 ![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
 ![GUI](https://img.shields.io/badge/GUI-CustomTkinter-brightgreen)
@@ -32,6 +32,13 @@
 - Python 3.8 ή νεότερη έκδοση.
 
 ### Βήματα Εγκατάστασης
+### Τρόπος 1: Άμεση Λήψη (Προτείνεται για Windows!) ⭐
+Δεν χρειάζεται να εγκαταστήσετε Python ή να γράψετε κώδικα:
+1. Πηγαίνετε στην ενότητα **Releases** στα δεξιά της σελίδας του GitHub.
+2. Κατεβάστε το αρχείο **`FileComparison.exe`**.
+3. Κάντε διπλό κλικ στο αρχείο που κατεβάσατε και η εφαρμογή θα ανοίξει αμέσως!
+
+### Τρόπος 2: Εκτέλεση από τον πηγαίο κώδικα (Για Developers & Mac/Linux)
 1. Κάντε clone το repository:
    ```bash
    git clone [https://github.com/USERNAME/REPO_NAME.git](https://github.com/USERNAME/REPO_NAME.git)
