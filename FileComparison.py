@@ -162,6 +162,10 @@ class ModernDataMatcherApp:
             "πρόγραμμα θα «καταλάβει» αυτόματα τον κανόνα αναζήτησης για όλο το PDF!"
         )
         ctk.CTkLabel(scroll_frame, text=step2_text, font=("Arial", 14), justify="left", wraplength=580).pack(anchor="w", padx=10)
+        warning_frame = ctk.CTkFrame(scroll_frame, fg_color="#5c1919", corner_radius=8)
+        warning_frame.pack(fill="x", pady=(20, 20), padx=10)
+        warning_text = "⚠️ ΠΡΟΣΟΧΗ: Αν επιλέξετε «Έξυπνη Μετατροπή» , δεν υπάρχει αντιστοίχιση κεφαλαία μικρά, συνεπώς αν γράψετε test θα βρει αντιστοιχα matches με 4 μικρους χαρακτήρες"
+        ctk.CTkLabel(warning_frame, text=warning_text, font=("Arial", 14, "bold"), text_color="#FFB3B3", justify="left", wraplength=550).pack(padx=15, pady=15)
 
         ctk.CTkLabel(scroll_frame, text=" ΒΗΜΑ 3: Έλεγχος & Αποτελέσματα", font=("Arial", 16, "bold")).pack(anchor="w", pady=(20, 5))
         step3_text = (
