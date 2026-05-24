@@ -104,7 +104,7 @@ class ModernDataMatcherApp:
         self.run_btn = ctk.CTkButton(options_frame, text="Εκτέλεση Ελέγχου", command=self.start_matching_thread, font=("Arial", 14, "bold"), fg_color="#2FA572", hover_color="#106A43")
         self.run_btn.pack(pady=(0, 10))
 
-        self.loading_frame = ctk.CTkFrame(options_frame, height=60, fg_color="transparent")
+        self.loading_frame = ctk.CTkFrame(options_frame, height=90, fg_color="transparent")
         self.loading_frame.pack(fill="x", pady=5)
         self.loading_frame.pack_propagate(False) 
 
@@ -112,7 +112,9 @@ class ModernDataMatcherApp:
         self.progress.set(0)
         self.status_label = ctk.CTkLabel(self.loading_frame, text="", text_color="gray")
         
+        # Κουμπιά Ανοίγματος Αρχείων (Αρχικά κρυμμένα)
         self.open_file_btn = ctk.CTkButton(options_frame, text="Άνοιγμα Αρχείου Κοινών", command=self.open_matches_file, fg_color="#1f538d")
+        self.open_highlighted_btn = ctk.CTkButton(options_frame, text="Άνοιγμα Αρχείου με Highlight", command=self.open_highlighted_file, fg_color="#106A43", hover_color="#0B4B2F")
 
         # --- ΠΛΑΙΣΙΟ 4: Μεμονωμένη Αναζήτηση ---
         search_frame = ctk.CTkFrame(left_frame)
@@ -184,22 +186,17 @@ class ModernDataMatcherApp:
 
     # ΜΗΧΑΝΙΣΜΟΣ REGEX & ΠΑΡΑΔΕΙΓΜΑΤΩΝ 
     def on_regex_change(self, choice):
-        # Ενεργοποιούμε το πεδίο προσωρινά για να μπορέσουμε να γράψουμε το παράδειγμα
         self.custom_regex_entry.configure(state="normal")
         
         if choice == "DYPA... με 3 παύλες":
             self.final_regex = r"\b[A-Z]+-\d+-\d+-\d+\b"
-            # Βάζουμε ένα fix παράδειγμα
             self.custom_regex_var.set("π.χ. DYPAUE-10031649-20250714-165727")
-            # Κλειδώνουμε το πεδίο (το κείμενο γίνεται γκριζωπό)
             self.custom_regex_entry.configure(state="disabled")
             self.active_regex_display.configure(text=f"Ενεργός Κανόνας: {self.final_regex}")
             
         elif choice == "Απλό Αλφαριθμητικό 5-10 χαρ":
             self.final_regex = r"\b[A-Z0-9]{5,10}\b"
-            # Βάζουμε ένα fix παράδειγμα
             self.custom_regex_var.set("π.χ. AB12345")
-            # Κλειδώνουμε το πεδίο
             self.custom_regex_entry.configure(state="disabled")
             self.active_regex_display.configure(text=f"Ενεργός Κανόνας: {self.final_regex}")
             
@@ -272,6 +269,8 @@ class ModernDataMatcherApp:
             if row[0]:
                 self.cached_excel_codes.append(str(row[0]).strip())
         
+        wb.close()
+        
         pdf_text = ""
         with pdfplumber.open(pdf_file) as pdf:
             total_pages = len(pdf.pages)
@@ -295,6 +294,7 @@ class ModernDataMatcherApp:
     def start_loading_ui(self):
         self.run_btn.configure(state="disabled")
         self.open_file_btn.pack_forget()
+        self.open_highlighted_btn.pack_forget()
         self.progress.pack(pady=(5, 0))
         self.progress.start()
         self.status_label.pack(pady=(2, 0))
@@ -347,13 +347,14 @@ class ModernDataMatcherApp:
                 
                 self.matches_filename = "Matches_Only.xlsx"
                 wb_matches.save(self.matches_filename)
-                self.root.after(0, lambda: self.open_file_btn.pack(pady=10))
+                self.root.after(0, lambda: self.open_file_btn.pack(pady=5))
 
             if self.highlight_excel_var.get():
                 excel_file = self.excel_path.get()
                 wb_original = openpyxl.load_workbook(excel_file)
                 ws_original = wb_original.active
-                green_fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type="solid")
+                
+                green_fill = PatternFill(start_color="FF00FF00", end_color="FF00FF00", fill_type="solid")
                 
                 for row in ws_original.iter_rows(min_row=2):
                     cell = row[0]
@@ -361,8 +362,15 @@ class ModernDataMatcherApp:
                         cell.fill = green_fill
                 
                 wb_original.save(excel_file)
+                wb_original.close()
+                # Εμφάνιση του κουμπιού για άνοιγμα του χρωματισμένου αρχείου
+                self.root.after(0, lambda: self.open_highlighted_btn.pack(pady=5))
 
-            self.root.after(0, lambda: messagebox.showinfo("Ολοκληρώθηκε", f"Η αντιστοίχιση ολοκληρώθηκε επιτυχώς!\nΒρέθηκαν {len(matches)} κοινοί κωδικοί."))
+            # Ενημέρωση του μηνύματος ολοκλήρωσης
+            self.root.after(0, lambda: messagebox.showinfo(
+                "Ολοκληρώθηκε", 
+                f"Η αντιστοίχιση ολοκληρώθηκε επιτυχώς!\nΒρέθηκαν {len(matches)} κοινοί κωδικοί.\n\nΑν επιλέξατε Highlight, οι αλλαγές αποθηκεύτηκαν απευθείας στο αρχικό σας Excel."
+            ))
 
         except Exception as e:
             error_msg = str(e)
@@ -378,6 +386,12 @@ class ModernDataMatcherApp:
             os.startfile(self.matches_filename)
         except Exception as e:
             messagebox.showerror("Σφάλμα", f"Δεν ήταν δυνατό το άνοιγμα:\n{str(e)}")
+
+    def open_highlighted_file(self):
+        try:
+            os.startfile(self.excel_path.get())
+        except Exception as e:
+            messagebox.showerror("Σφάλμα", f"Δεν ήταν δυνατό το άνοιγμα του αρχείου:\n{str(e)}")
 
     def start_search_thread(self):
         code_to_search = self.search_code_var.get().strip()
