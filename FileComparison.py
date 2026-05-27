@@ -16,7 +16,7 @@ class ModernDataMatcherApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Αντιστοίχιση Δεδομένων Excel & PDF")
-        self.root.geometry("1100x800")
+        self.root.geometry("1100x720") # <-- ΑΛΛΑΓΗ: Μικρότερο ύψος για να μη βγαίνει εκτός οθόνης!
 
         self.excel_path = ctk.StringVar()
         self.pdf_path = ctk.StringVar()
@@ -40,38 +40,39 @@ class ModernDataMatcherApp:
 
     def setup_ui(self):
         main_container = ctk.CTkFrame(self.root, fg_color="transparent")
-        main_container.pack(fill="both", expand=True, padx=20, pady=20)
+        main_container.pack(fill="both", expand=True, padx=20, pady=10)
 
+        # Κανονικό Frame χωρίς scroll
         left_frame = ctk.CTkFrame(main_container, fg_color="transparent")
         left_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
 
         # ΜΠΑΡΑ ΤΙΤΛΟΥ & ΚΟΥΜΠΙ ΟΔΗΓΙΩΝ 
         top_left_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
-        top_left_frame.pack(fill="x", pady=(0, 15))
+        top_left_frame.pack(fill="x", pady=(0, 10))
         ctk.CTkLabel(top_left_frame, text="Εργαλεία Ελέγχου", font=("Arial", 20, "bold")).pack(side="left")
         ctk.CTkButton(top_left_frame, text="ℹ️ Οδηγίες Χρήσης", command=self.show_help, width=120, fg_color="#E3A82B", hover_color="#C08B1F", text_color="black").pack(side="right")
 
         # Επιλογή Αρχείων
         file_frame = ctk.CTkFrame(left_frame)
-        file_frame.pack(fill="x", pady=(0, 15))
-        ctk.CTkLabel(file_frame, text="1. Επιλογή Αρχείων", font=("Arial", 14, "bold")).pack(anchor="w", padx=15, pady=(10, 5))
+        file_frame.pack(fill="x", pady=(0, 10))
+        ctk.CTkLabel(file_frame, text="1. Επιλογή Αρχείων", font=("Arial", 14, "bold")).pack(anchor="w", padx=15, pady=(5, 5))
 
         excel_row = ctk.CTkFrame(file_frame, fg_color="transparent")
-        excel_row.pack(fill="x", padx=15, pady=5)
+        excel_row.pack(fill="x", padx=15, pady=2)
         ctk.CTkLabel(excel_row, text="Αρχείο Excel:").pack(side="left", padx=(0, 10))
         ctk.CTkEntry(excel_row, textvariable=self.excel_path, width=280, state='readonly').pack(side="left", padx=(0, 10))
         ctk.CTkButton(excel_row, text="Αναζήτηση", command=self.select_excel, width=90).pack(side="left")
 
         pdf_row = ctk.CTkFrame(file_frame, fg_color="transparent")
-        pdf_row.pack(fill="x", padx=15, pady=(5, 15))
+        pdf_row.pack(fill="x", padx=15, pady=(2, 10))
         ctk.CTkLabel(pdf_row, text="Αρχείο PDF:  ").pack(side="left", padx=(0, 10))
         ctk.CTkEntry(pdf_row, textvariable=self.pdf_path, width=280, state='readonly').pack(side="left", padx=(0, 10))
         ctk.CTkButton(pdf_row, text="Αναζήτηση", command=self.select_pdf, width=90).pack(side="left")
 
         # Κανόνας Αναζήτησης 
         regex_frame = ctk.CTkFrame(left_frame)
-        regex_frame.pack(fill="x", pady=(0, 15))
-        ctk.CTkLabel(regex_frame, text="2. Μορφή Κωδικού (Αναζήτηση)", font=("Arial", 14, "bold")).pack(anchor="w", padx=15, pady=(10, 5))
+        regex_frame.pack(fill="x", pady=(0, 10))
+        ctk.CTkLabel(regex_frame, text="2. Μορφή Κωδικού (Αναζήτηση)", font=("Arial", 14, "bold")).pack(anchor="w", padx=15, pady=(5, 5))
 
         self.regex_dropdown = ctk.CTkOptionMenu(
             regex_frame,
@@ -84,51 +85,53 @@ class ModernDataMatcherApp:
             ],
             command=self.on_regex_change
         )
-        self.regex_dropdown.pack(fill="x", padx=15, pady=5)
+        self.regex_dropdown.pack(fill="x", padx=15, pady=2)
 
         self.custom_regex_entry = ctk.CTkEntry(regex_frame, textvariable=self.custom_regex_var, text_color="lightgreen", placeholder_text="π.χ. ΑΔΥΓΥΕΦΓ-33242432")
-        self.custom_regex_entry.pack(fill="x", padx=15, pady=5)
+        self.custom_regex_entry.pack(fill="x", padx=15, pady=2)
         self.custom_regex_entry.bind("<KeyRelease>", self.update_dynamic_regex)
 
         self.active_regex_display = ctk.CTkLabel(regex_frame, text="", font=("Consolas", 12), text_color="gray")
-        self.active_regex_display.pack(anchor="w", padx=15, pady=(0, 10))
+        self.active_regex_display.pack(anchor="w", padx=15, pady=(0, 5))
 
         # Μαζικός Έλεγχος & Επιλογές 
         options_frame = ctk.CTkFrame(left_frame)
-        options_frame.pack(fill="x", pady=(0, 10))
-        ctk.CTkLabel(options_frame, text="3. Μαζικός Έλεγχος", font=("Arial", 14, "bold")).pack(anchor="w", padx=15, pady=(10, 5))
+        options_frame.pack(fill="x", pady=(0, 5))
+        ctk.CTkLabel(options_frame, text="3. Μαζικός Έλεγχος", font=("Arial", 14, "bold")).pack(anchor="w", padx=15, pady=(5, 5))
 
-        ctk.CTkCheckBox(options_frame, text="Δημιουργία Excel ΜΟΝΟ με τα κοινά", variable=self.export_matches_var).pack(anchor="w", padx=15, pady=5)
-        ctk.CTkCheckBox(options_frame, text="Πράσινο Highlight στα κοινά (Στο αρχικό Excel)", variable=self.highlight_excel_var).pack(anchor="w", padx=15, pady=(5, 15))
+        ctk.CTkCheckBox(options_frame, text="Δημιουργία Excel ΜΟΝΟ με τα κοινά", variable=self.export_matches_var).pack(anchor="w", padx=15, pady=2)
+        ctk.CTkCheckBox(options_frame, text="Πράσινο Highlight στα κοινά (Στο αρχικό Excel)", variable=self.highlight_excel_var).pack(anchor="w", padx=15, pady=(2, 5))
 
         self.run_btn = ctk.CTkButton(options_frame, text="Εκτέλεση Ελέγχου", command=self.start_matching_thread, font=("Arial", 14, "bold"), fg_color="#2FA572", hover_color="#106A43")
-        self.run_btn.pack(pady=(0, 10))
+        self.run_btn.pack(pady=(0, 5))
 
-        self.loading_frame = ctk.CTkFrame(options_frame, height=90, fg_color="transparent")
-        self.loading_frame.pack(fill="x", pady=5)
-        self.loading_frame.pack_propagate(False) 
+        # --- ΤΟ ΜΥΣΤΙΚΟ: Ένα και μοναδικό σταθερό πλαίσιο ---
+        self.dynamic_area = ctk.CTkFrame(options_frame, height=60, fg_color="transparent")
+        self.dynamic_area.pack(fill="x", pady=0)
+        self.dynamic_area.pack_propagate(False) # ΚΛΕΙΔΩΜΑ ΜΕΓΕΘΟΥΣ
 
-        self.progress = ctk.CTkProgressBar(self.loading_frame, mode="indeterminate", width=380)
+        # Στοιχεία φόρτωσης (μπαίνουν στο dynamic_area)
+        self.progress = ctk.CTkProgressBar(self.dynamic_area, mode="indeterminate", width=380)
         self.progress.set(0)
-        self.status_label = ctk.CTkLabel(self.loading_frame, text="", text_color="gray")
+        self.status_label = ctk.CTkLabel(self.dynamic_area, text="", text_color="gray")
         
-        # Κουμπιά Ανοίγματος Αρχείων (Αρχικά κρυμμένα)
-        self.open_file_btn = ctk.CTkButton(options_frame, text="Άνοιγμα Αρχείου Κοινών", command=self.open_matches_file, fg_color="#1f538d")
-        self.open_highlighted_btn = ctk.CTkButton(options_frame, text="Άνοιγμα Αρχείου με Highlight", command=self.open_highlighted_file, fg_color="#106A43", hover_color="#0B4B2F")
+        # Κουμπιά (μπαίνουν στο ΙΔΙΟ dynamic_area)
+        self.open_file_btn = ctk.CTkButton(self.dynamic_area, text="Άνοιγμα Αρχείου Κοινών", command=self.open_matches_file, fg_color="#1f538d")
+        self.open_highlighted_btn = ctk.CTkButton(self.dynamic_area, text="Άνοιγμα Αρχείου με Highlight", command=self.open_highlighted_file, fg_color="#106A43", hover_color="#0B4B2F")
 
         # --- ΠΛΑΙΣΙΟ 4: Μεμονωμένη Αναζήτηση ---
         search_frame = ctk.CTkFrame(left_frame)
-        search_frame.pack(fill="x", pady=(20, 0))
-        ctk.CTkLabel(search_frame, text="4. Μεμονωμένη Αναζήτηση Εργαζόμενου", font=("Arial", 14, "bold")).pack(anchor="w", padx=15, pady=(10, 5))
+        search_frame.pack(fill="x", pady=(10, 0))
+        ctk.CTkLabel(search_frame, text="4. Μεμονωμένη Αναζήτηση Εργαζόμενου", font=("Arial", 14, "bold")).pack(anchor="w", padx=15, pady=(5, 5))
 
         s_row = ctk.CTkFrame(search_frame, fg_color="transparent")
-        s_row.pack(fill="x", padx=15, pady=(5, 10))
+        s_row.pack(fill="x", padx=15, pady=(2, 5))
         ctk.CTkLabel(s_row, text="Εισάγετε Κωδικό:").pack(side="left", padx=(0, 10))
         ctk.CTkEntry(s_row, textvariable=self.search_code_var, width=180).pack(side="left", padx=(0, 10))
         ctk.CTkButton(s_row, text="Αναζήτηση", command=self.start_search_thread, width=90).pack(side="left")
         
         self.search_result_label = ctk.CTkLabel(search_frame, text="", font=("Arial", 14, "bold"))
-        self.search_result_label.pack(pady=(0, 15))
+        self.search_result_label.pack(pady=(0, 10))
 
         # ====== ΔΕΞΙΑ ΣΤΗΛΗ (Προεπισκόπηση) ======
         right_frame = ctk.CTkFrame(main_container)
@@ -347,7 +350,8 @@ class ModernDataMatcherApp:
                 
                 self.matches_filename = "Matches_Only.xlsx"
                 wb_matches.save(self.matches_filename)
-                self.root.after(0, lambda: self.open_file_btn.pack(pady=5))
+                
+                self.root.after(0, lambda: self.open_file_btn.pack(side="left", padx=10, expand=True))
 
             if self.highlight_excel_var.get():
                 excel_file = self.excel_path.get()
@@ -363,10 +367,9 @@ class ModernDataMatcherApp:
                 
                 wb_original.save(excel_file)
                 wb_original.close()
-                # Εμφάνιση του κουμπιού για άνοιγμα του χρωματισμένου αρχείου
-                self.root.after(0, lambda: self.open_highlighted_btn.pack(pady=5))
+                
+                self.root.after(0, lambda: self.open_highlighted_btn.pack(side="left", padx=10, expand=True))
 
-            # Ενημέρωση του μηνύματος ολοκλήρωσης
             self.root.after(0, lambda: messagebox.showinfo(
                 "Ολοκληρώθηκε", 
                 f"Η αντιστοίχιση ολοκληρώθηκε επιτυχώς!\nΒρέθηκαν {len(matches)} κοινοί κωδικοί.\n\nΑν επιλέξατε Highlight, οι αλλαγές αποθηκεύτηκαν απευθείας στο αρχικό σας Excel."
